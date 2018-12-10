@@ -5,3 +5,6 @@ backup_db.sh
 mysql.sh
 mock.sh
 amadeus-11730-firebase-adminsdk-zavfc-ace36f325f.json
+/dist
+dist/
+.env

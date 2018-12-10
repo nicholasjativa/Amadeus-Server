@@ -4,10 +4,10 @@ let connection: Pool;
 
 export function connect(cb): void {
     connection = createPool({
-        host: "DB_HOST",
-        user: "USER",
-        password: "PASSWORD",
-        database: "DATABASE_NAME",
+        host: process.env.PROD_DB_HOST,
+        user: process.env.PROD_DB_USER,
+        password: process.env.PROD_DB_PASSWORD,
+        database: process.env.PROD_DB_NAME,
         charset : "utf8mb4"
     });
     connection.on("error", (err) => {

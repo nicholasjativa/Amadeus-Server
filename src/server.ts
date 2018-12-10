@@ -37,10 +37,10 @@ export class AmadeusServer {
         admin.initializeApp({
             credential: admin.credential.cert({
                 projectId: "amadeus",
-                clientEmail: "FIREBASE_CLIENT_EMAIL",
-                privateKey: "FIREBASE_PRIVATE_KEY"
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                privateKey: process.env.FIREBASE_PRIVATE_KEY
             }),
-            databaseURL: "DATABASE_URL"
+            databaseURL: process.env.FIREBASE_DB_URL
         });
     }
 
