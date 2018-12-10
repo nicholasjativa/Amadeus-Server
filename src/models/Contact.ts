@@ -10,13 +10,13 @@ export class Contact {
             query,
             values,
             (err, rows) => {
-                if (err){
+                if (err) {
                     cb(err, undefined);
                 } else {
                     cb(undefined, rows);
                 }
             }
-        )
+        );
     }
 
     public static getContacts(cb: Function): void {

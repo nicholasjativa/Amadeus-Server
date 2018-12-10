@@ -58,7 +58,7 @@ export class ConversationController {
 
     private getConversationMessages(req: Request, res: Response): void {
         const phone_num_clean = req.body.phone_num_clean;
-        
+
         Text.getAllMessages(phone_num_clean, (err, messagesRows) => {
             if (err) {
                 return res.json(err);
@@ -71,7 +71,7 @@ export class ConversationController {
                     if (err) {
                         return res.json(err);
                     } else {
-                        let response = {
+                        const response = {
                             name: info.name,
                             address: info.phoneNumber,
                             messages: messagesRows
