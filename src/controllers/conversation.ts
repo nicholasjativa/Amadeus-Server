@@ -5,6 +5,7 @@ import { Text } from "../models/Text";
 import { RegistrationToken } from "../config/registrationToken";
 import { messaging } from "firebase-admin";
 import * as SocketIO from "socket.io";
+import { Contact } from "../models/Contact";
 
 /*
     TODOs
@@ -57,13 +58,27 @@ export class ConversationController {
 
     private getConversationMessages(req: Request, res: Response): void {
         const phone_num_clean = req.body.phone_num_clean;
-
-        Text.getAllMessages(phone_num_clean, (err, rows) => {
+        
+        Text.getAllMessages(phone_num_clean, (err, messagesRows) => {
             if (err) {
                 return res.json(err);
             } else {
                 console.log("Sending conversation messages to client.");
-                res.json(rows);
+                Contact.getContact(phone_num_clean, (err, contactRows) => {
+
+                    const info = contactRows[0];
+
+                    if (err) {
+                        return res.json(err);
+                    } else {
+                        let response = {
+                            name: info.name,
+                            address: info.phoneNumber,
+                            messages: messagesRows
+                        };
+                        res.json(response);
+                    }
+                });
             }
         });
     }

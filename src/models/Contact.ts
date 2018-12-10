@@ -3,6 +3,22 @@ import { PhoneNumberUtils } from "../utils/phoneNumberUtils";
 
 export class Contact {
 
+    public static getContact(phoneNumber: string, cb?: Function): void {
+        const query: string = `SELECT * FROM contacts WHERE phoneNumber = ?`;
+        const values: string[] = [phoneNumber];
+        db.get().query(
+            query,
+            values,
+            (err, rows) => {
+                if (err){
+                    cb(err, undefined);
+                } else {
+                    cb(undefined, rows);
+                }
+            }
+        )
+    }
+
     public static getContacts(cb: Function): void {
         const query: string = `SELECT * FROM contacts`;
 
