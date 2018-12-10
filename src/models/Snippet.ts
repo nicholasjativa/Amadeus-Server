@@ -71,8 +71,11 @@ export class Snippet {
                                 if (err) {
                                     return cb(err, undefined);
                                 } else {
-                                    db.get().query(`SELECT *
+                                    db.get().query(`SELECT snippets.id, contacts.name, timestamp, body, threadId, type,
+                                                    address, snippets.contactId
                                                     FROM snippets
+                                                    JOIN contacts
+                                                    ON phoneNumber = address
                                                     WHERE address = ?`,
                                                     [phone_num_clean],
                                                     (err, result) => cb(undefined, result));
