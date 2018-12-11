@@ -2,7 +2,6 @@ import * as admin from "firebase-admin";
 import { Response, Request, Router, } from "express";
 import { Snippet } from "../models/Snippet";
 import { Text } from "../models/Text";
-import { RegistrationToken } from "../config/registrationToken";
 import { messaging } from "firebase-admin";
 import * as SocketIO from "socket.io";
 import { Contact } from "../models/Contact";
