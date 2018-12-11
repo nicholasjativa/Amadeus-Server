@@ -6,7 +6,7 @@ export function allowCrossDomain(req: Request, res: Response, next: NextFunction
         "http://localhost:4200", "http://localhost:8999",
         "https://amadeusapp.herokuapp.com",
         "http://amadeusapp.herokuapp.com",
-        "amadeusapp.herokuapp.com"    
+        "amadeusapp.herokuapp.com"
     ];
 
     let incomingOrigin;

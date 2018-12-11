@@ -4,16 +4,16 @@ function allowCrossDomain(req, res, next) {
     const allowedOrigins = [
         "localhost:8999", "localhost:4200",
         "http://localhost:4200", "http://localhost:8999",
-        "https://whispering-woodland-59077.herokuapp.com",
-        "http://whispering-woodland-59077.herokuapp.com",
-        "whispering-woodland-59077.herokuapp.com"
+        "https://amadeusapp.herokuapp.com",
+        "http://amadeusapp.herokuapp.com",
+        "amadeusapp.herokuapp.com"
     ];
     let incomingOrigin;
     try {
         incomingOrigin = allowedOrigins.indexOf(req.headers.host.toLowerCase()) > -1 ? req.headers.origin.toString() : "API_URL";
     }
     catch (error) {
-        incomingOrigin = "whispering-woodland-59077.herokuapp.com";
+        incomingOrigin = "amadeusapp.herokuapp.com";
     }
     res.header("Access-Control-Allow-Origin", incomingOrigin);
     res.header("Access-Control-Allow-Credentials", "true");
