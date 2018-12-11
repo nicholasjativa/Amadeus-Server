@@ -4,7 +4,6 @@ const admin = require("firebase-admin");
 const express_1 = require("express");
 const Snippet_1 = require("../models/Snippet");
 const Text_1 = require("../models/Text");
-const registrationToken_1 = require("../config/registrationToken");
 const Contact_1 = require("../models/Contact");
 /*
     TODOs
@@ -110,7 +109,7 @@ class ConversationController {
         // TODO this should come from a mysql query
         this.sendMessageToWebsocket(Object.assign({ status: this.MESSAGE_STATE_PENDING }, message));
         res.send(JSON.stringify({ message: "OK" }));
-        admin.messaging().sendToDevice(registrationToken_1.RegistrationToken, payload)
+        admin.messaging().sendToDevice(req.session.registrationToken, payload)
             .then(data => {
             // TODO, this message should come from a mysql query
             const updatedMessage = Object.assign({ status: this.MESSAGE_STATE_GCM_SUCCESS }, message);

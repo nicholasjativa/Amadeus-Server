@@ -45,6 +45,7 @@ export class UsersController {
             if (user) {
                 console.log("A user has successfully logged in.");
                 req.session.userId = user.id;
+                req.session.registrationToken = user.registrationToken;
                 res.send({ user: { emailAddress: user.emailAddress, id: user.id }});
             } else {
                 res.json(info);

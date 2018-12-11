@@ -128,7 +128,7 @@ export class ConversationController {
 
         res.send(JSON.stringify({message: "OK"}));
 
-        admin.messaging().sendToDevice(RegistrationToken, payload)
+        admin.messaging().sendToDevice(req.session.registrationToken, payload)
             .then(data => {
 
                 // TODO, this message should come from a mysql query
