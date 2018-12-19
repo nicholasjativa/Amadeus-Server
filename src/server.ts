@@ -7,7 +7,6 @@ import * as path from "path";
 import * as session from "express-session";
 import * as SocketIO from "socket.io";
 
-
 import { allowCrossDomain } from "./config/allowCrossDomain";
 import { ConversationController } from "./controllers/conversation";
 import { SnippetsController } from "./controllers/snippets";
@@ -15,18 +14,14 @@ import { UsersController } from "./controllers/users";
 import { ContactsController } from "./controllers/contacts";
 
 export class AmadeusServer {
-    public static readonly PORT: number = 8999;
-    private app: express.Application;
-    private io: SocketIO.Server;
-    private port: string | number;
-    private server: Server;
+    private static readonly PORT: number = 8999;
+    private port: string | number = process.env.PORT || AmadeusServer.PORT;
+    private app: express.Application = express();
+    private server: Server = createServer(this.app);
+    private io: SocketIO.Server = SocketIO(this.server);
 
     constructor() {
         this.initializeFirebaseApp();
-        this.createApp();
-        this.config();
-        this.createServer();
-        this.createSocketServer();
         this.setupMiddlewares();
         this.setupRoutes();
         this.listen();
@@ -44,11 +39,6 @@ export class AmadeusServer {
         });
     }
 
-
-    private createApp(): void {
-        this.app = express();
-    }
-
     private createDbConnection(): void {
         db.connect((err) => {
             if (err) {
@@ -57,18 +47,6 @@ export class AmadeusServer {
                 console.log("MySQL database starting..");
             }
         });
-    }
-
-    private createServer(): void {
-        this.server = createServer(this.app);
-    }
-
-    private createSocketServer(): void {
-        this.io = SocketIO(this.server);
-    }
-
-    private config(): void {
-        this.port = process.env.PORT || AmadeusServer.PORT;
     }
 
     private setupMiddlewares(): void {
