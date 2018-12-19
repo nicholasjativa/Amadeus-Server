@@ -48,7 +48,7 @@ export class UsersController {
                 req.session.registrationToken = user.registrationToken;
                 res.send({ user: { emailAddress: user.emailAddress, id: user.id }});
             } else {
-                res.json(info);
+                res.status(401).json(info.error);
             }
 
         });

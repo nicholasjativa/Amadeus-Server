@@ -40,7 +40,7 @@ class UsersController {
                 res.send({ user: { emailAddress: user.emailAddress, id: user.id } });
             }
             else {
-                res.json(info);
+                res.status(401).json(info.error);
             }
         });
     }
