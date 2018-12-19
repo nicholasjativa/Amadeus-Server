@@ -30,7 +30,7 @@ export class ConversationController {
             // send upstream on websockete when message has successfully been sent on phone
             socket.send("Knightmare Frame connection established.");
         });
-        
+
         this.router.post("/", this.handleSmsReceivedOnAndroidAndRelayedHere.bind(this));
         this.router.post("/send-to-device", this.relayMessageToAndroid.bind(this));
         this.router.post("/getConversationMessages", this.getConversationMessages.bind(this));

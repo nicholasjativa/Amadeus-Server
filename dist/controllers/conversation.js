@@ -13,6 +13,7 @@ const Contact_1 = require("../models/Contact");
 */
 class ConversationController {
     constructor(io) {
+        this.router = express_1.Router();
         this.MESSAGE_STATE_PENDING = "pending";
         this.MESSAGE_STATE_GCM_SUCCESS = "gcm_success";
         this.MESSAGE_STATE_GCM_ERROR = "gcm_error";
@@ -24,8 +25,11 @@ class ConversationController {
             // send upstream on websockete when message has successfully been sent on phone
             socket.send("Knightmare Frame connection established.");
         });
-        this.router = express_1.Router();
-        this.setupRoutes();
+        this.router.post("/", this.handleSmsReceivedOnAndroidAndRelayedHere.bind(this));
+        this.router.post("/send-to-device", this.relayMessageToAndroid.bind(this));
+        this.router.post("/getConversationMessages", this.getConversationMessages.bind(this));
+        this.router.post("/own", this.catchOutgoingMessagesSentOnAndroid.bind(this));
+        this.router.post("/update-outgoing-text-message-id", this.handleUpdateOutgoingTextId.bind(this));
     }
     catchOutgoingMessagesSentOnAndroid(req, res) {
         const timestamp = req.body.timestamp;
@@ -127,13 +131,6 @@ class ConversationController {
             this.io.emit("sendToAndroidError");
             console.log("Error occurred in Firebase: %s", err);
         });
-    }
-    setupRoutes() {
-        this.router.post("/", this.handleSmsReceivedOnAndroidAndRelayedHere.bind(this));
-        this.router.post("/send-to-device", this.relayMessageToAndroid.bind(this));
-        this.router.post("/getConversationMessages", this.getConversationMessages.bind(this));
-        this.router.post("/own", this.catchOutgoingMessagesSentOnAndroid.bind(this));
-        this.router.post("/update-outgoing-text-message-id", this.handleUpdateOutgoingTextId.bind(this));
     }
     sendMessageToWebsocket(message) {
         this.io.emit("sendOutgoingMessageUpstreamToWebsocketWithInitialState", message);

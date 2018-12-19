@@ -5,7 +5,9 @@ const User_1 = require("../models/User");
 class UsersController {
     constructor() {
         this.router = express_1.Router();
-        this.setupRoutes();
+        this.router.post("/signup", this.handleSignup.bind(this));
+        this.router.post("/login", this.handleLogin.bind(this));
+        this.router.get("/user", this.getUser.bind(this));
     }
     getUser(req, res, next) {
         User_1.User.findById(req.session.userId, (error, result) => {
@@ -43,11 +45,6 @@ class UsersController {
                 res.status(401).json(info.error);
             }
         });
-    }
-    setupRoutes() {
-        this.router.post("/signup", this.handleSignup.bind(this));
-        this.router.post("/login", this.handleLogin.bind(this));
-        this.router.get("/user", this.getUser.bind(this));
     }
 }
 exports.UsersController = UsersController;

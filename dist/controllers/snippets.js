@@ -5,9 +5,11 @@ const Snippet_1 = require("../models/Snippet");
 class SnippetsController {
     constructor() {
         this.router = express_1.Router();
-        this.setupRoutes();
+        this.router.get("/", this.getSnippets.bind(this));
+        this.router.post("/", this.handleSnippetsReceived.bind(this));
     }
     getSnippets(req, res) {
+        const userId = req.session.userId;
         Snippet_1.Snippet.getSnippets((err, rows) => {
             if (err) {
                 console.log(err);
@@ -25,10 +27,6 @@ class SnippetsController {
             Snippet_1.Snippet.create(s.address, s.body, s.contactId, s.name, s.threadId, s.timestamp, s.type);
         }
         res.sendStatus(200);
-    }
-    setupRoutes() {
-        this.router.get("/", this.getSnippets.bind(this));
-        this.router.post("/", this.handleSnippetsReceived.bind(this));
     }
 }
 exports.SnippetsController = SnippetsController;

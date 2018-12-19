@@ -5,9 +5,6 @@ const Contact_1 = require("../models/Contact");
 class ContactsController {
     constructor() {
         this.router = express_1.Router();
-        this.setupRoutes();
-    }
-    setupRoutes() {
         this.router.post("/", this.handleReceivingContacts.bind(this));
         this.router.get("/", this.handleSendingContacts.bind(this));
     }

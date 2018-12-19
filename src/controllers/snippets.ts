@@ -9,6 +9,9 @@ export class SnippetsController {
         this.router.post("/", this.handleSnippetsReceived.bind(this));    }
 
     getSnippets(req: Request, res: Response): void {
+
+        const userId: number = req.session.userId;
+
         Snippet.getSnippets((err, rows) => {
             if (err) {
                 console.log(err);

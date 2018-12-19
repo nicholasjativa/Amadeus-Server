@@ -15,11 +15,11 @@ const users_1 = require("./controllers/users");
 const contacts_1 = require("./controllers/contacts");
 class AmadeusServer {
     constructor() {
+        this.port = process.env.PORT || AmadeusServer.PORT;
+        this.app = express();
+        this.server = http_1.createServer(this.app);
+        this.io = SocketIO(this.server);
         this.initializeFirebaseApp();
-        this.createApp();
-        this.config();
-        this.createServer();
-        this.createSocketServer();
         this.setupMiddlewares();
         this.setupRoutes();
         this.listen();
@@ -35,9 +35,6 @@ class AmadeusServer {
             databaseURL: process.env.FIREBASE_DB_URL
         });
     }
-    createApp() {
-        this.app = express();
-    }
     createDbConnection() {
         db.connect((err) => {
             if (err) {
@@ -47,15 +44,6 @@ class AmadeusServer {
                 console.log("MySQL database starting..");
             }
         });
-    }
-    createServer() {
-        this.server = http_1.createServer(this.app);
-    }
-    createSocketServer() {
-        this.io = SocketIO(this.server);
-    }
-    config() {
-        this.port = process.env.PORT || AmadeusServer.PORT;
     }
     setupMiddlewares() {
         this.app.use(allowCrossDomain_1.allowCrossDomain);

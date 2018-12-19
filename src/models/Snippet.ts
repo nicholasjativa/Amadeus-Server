@@ -43,6 +43,7 @@ export class Snippet {
     }
 
     public static getSnippets(cb): void {
+
         db.get().query(`SELECT contacts.name, timestamp, address, body FROM snippets
                         JOIN contacts
                         WHERE address = phoneNumber
