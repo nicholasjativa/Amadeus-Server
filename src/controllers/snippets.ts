@@ -5,8 +5,8 @@ export class SnippetsController {
     public router: Router = Router();
 
     constructor() {
-        this.setupRoutes();
-    }
+        this.router.get("/", this.getSnippets.bind(this));
+        this.router.post("/", this.handleSnippetsReceived.bind(this));    }
 
     getSnippets(req: Request, res: Response): void {
         Snippet.getSnippets((err, rows) => {
@@ -28,8 +28,4 @@ export class SnippetsController {
         res.sendStatus(200);
     }
 
-    setupRoutes(): void {
-        this.router.get("/", this.getSnippets.bind(this));
-        this.router.post("/", this.handleSnippetsReceived.bind(this));
-    }
 }

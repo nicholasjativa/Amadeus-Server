@@ -2,11 +2,12 @@ import { Router, Request, Response } from "express";
 import { User } from "../models/User";
 
 export class UsersController {
-    public router: Router;
+    public router: Router = Router();
 
     constructor() {
-        this.router = Router();
-        this.setupRoutes();
+        this.router.post("/signup", this.handleSignup.bind(this));
+        this.router.post("/login", this.handleLogin.bind(this));
+        this.router.get("/user", this.getUser.bind(this));
     }
 
     public getUser(req: Request, res: Response, next): void {
@@ -54,9 +55,4 @@ export class UsersController {
         });
     }
 
-    public setupRoutes(): void {
-        this.router.post("/signup", this.handleSignup.bind(this));
-        this.router.post("/login", this.handleLogin.bind(this));
-        this.router.get("/user", this.getUser.bind(this));
-    }
 }

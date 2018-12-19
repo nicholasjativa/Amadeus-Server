@@ -2,14 +2,10 @@ import { Request, Response, Router } from "express";
 import { Contact } from "../models/Contact";
 
 export class ContactsController {
-    public router: Router;
+    public router: Router = Router();
 
     constructor() {
-        this.router = Router();
-        this.setupRoutes();
-    }
 
-    private setupRoutes(): void {
         this.router.post("/", this.handleReceivingContacts.bind(this));
         this.router.get("/", this.handleSendingContacts.bind(this));
     }

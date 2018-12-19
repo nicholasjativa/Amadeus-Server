@@ -14,7 +14,7 @@ import { Contact } from "../models/Contact";
 */
 
 export class ConversationController {
-    public router: Router;
+    public router: Router = Router();
     public io: SocketIO.Server;
     private readonly MESSAGE_STATE_PENDING: string = "pending";
     private readonly MESSAGE_STATE_GCM_SUCCESS: string = "gcm_success";
@@ -30,8 +30,12 @@ export class ConversationController {
             // send upstream on websockete when message has successfully been sent on phone
             socket.send("Knightmare Frame connection established.");
         });
-        this.router = Router();
-        this.setupRoutes();
+        
+        this.router.post("/", this.handleSmsReceivedOnAndroidAndRelayedHere.bind(this));
+        this.router.post("/send-to-device", this.relayMessageToAndroid.bind(this));
+        this.router.post("/getConversationMessages", this.getConversationMessages.bind(this));
+        this.router.post("/own", this.catchOutgoingMessagesSentOnAndroid.bind(this));
+        this.router.post("/update-outgoing-text-message-id", this.handleUpdateOutgoingTextId.bind(this));
     }
 
     private catchOutgoingMessagesSentOnAndroid(req: Request, res: Response): void {
@@ -146,14 +150,6 @@ export class ConversationController {
                 this.io.emit("sendToAndroidError");
                 console.log("Error occurred in Firebase: %s", err);
             });
-    }
-
-    private setupRoutes(): void {
-        this.router.post("/", this.handleSmsReceivedOnAndroidAndRelayedHere.bind(this));
-        this.router.post("/send-to-device", this.relayMessageToAndroid.bind(this));
-        this.router.post("/getConversationMessages", this.getConversationMessages.bind(this));
-        this.router.post("/own", this.catchOutgoingMessagesSentOnAndroid.bind(this));
-        this.router.post("/update-outgoing-text-message-id", this.handleUpdateOutgoingTextId.bind(this));
     }
 
     private sendMessageToWebsocket(message: any): void {
