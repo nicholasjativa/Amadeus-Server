@@ -61,8 +61,9 @@ export class ConversationController {
 
     private getConversationMessages(req: Request, res: Response): void {
         const phone_num_clean = req.body.phone_num_clean;
+        const userId = req.session.userId;
 
-        Text.getAllMessages(phone_num_clean, (err, messagesRows) => {
+        Text.getAllMessages(phone_num_clean, userId, (err, messagesRows) => {
             if (err) {
                 return res.json(err);
             } else {

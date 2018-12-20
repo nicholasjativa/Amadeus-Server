@@ -20,13 +20,14 @@ export class Text {
                         });
     }
 
-    static getAllMessages(phone_num_clean: number, cb): void {console.log("the phone number is", phone_num_clean);
+    static getAllMessages(phone_num_clean: number, userId: number, cb): void {
         db.get().query(`SELECT *
                         FROM texts
                         WHERE phone_num_clean = ?
+                        AND userId = ?
                         ORDER BY timestamp
                         DESC LIMIT 30`,
-                        [phone_num_clean],
+                        [phone_num_clean, userId],
                         (err, rows) => {
                             if (err) return cb(err);
                             cb(undefined, rows.reverse());

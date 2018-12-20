@@ -5,7 +5,7 @@ export class UsersController {
     public router: Router = Router();
 
     constructor() {
-        this.router.post("/signup", this.handleSignup.bind(this));
+        this.router.post("/create-account", this.handleCreateAccount.bind(this));
         this.router.post("/login", this.handleLogin.bind(this));
         this.router.get("/user", this.getUser.bind(this));
     }
@@ -24,17 +24,26 @@ export class UsersController {
         });
     }
 
-    public handleSignup(req, res, next): void {
-        const email = req.body.user.emailAddress;
-        const name = req.body.user.name;
-        const phoneNumber = req.body.user.phoneNumber;
-        const user = new User(email, name, phoneNumber);
-        user.setPassword(req.body.user.password);
+    public handleCreateAccount(req: Request, res: Response): void {
 
-        user.save();
+        const accountCreationData = req.body;
+        User.createNewAccount(accountCreationData, (err, success) => {
+            
+            if (err && err.code === 'ER_DUP_ENTRY') {
 
+                res.status(400).json({
+                    error: 'Email or phone number already exist'
+                });
+
+            } else if (success) {
+
+                res.json({
+                    success: true
+                });
+            }
+        });
+    
     }
-
 
     public handleLogin(req, res, next): void {
         const emailAddress = req.body.user.emailAddress;
@@ -47,7 +56,13 @@ export class UsersController {
                 console.log("A user has successfully logged in.");
                 req.session.userId = user.id;
                 req.session.registrationToken = user.registrationToken;
-                res.send({ user: { emailAddress: user.emailAddress, id: user.id }});
+                res.send({ user: { 
+                    emailAddress: user.emailAddress, 
+                    id: user.id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phoneNumber: user.phoneNumber
+                }});
             } else {
                 res.status(401).json(info.error);
             }

@@ -12,7 +12,7 @@ export class SnippetsController {
 
         const userId: number = req.session.userId;
 
-        Snippet.getSnippets((err, rows) => {
+        Snippet.getSnippets(userId, (err, rows) => {
             if (err) {
                 console.log(err);
             } else {

@@ -42,12 +42,14 @@ export class Snippet {
         });
     }
 
-    public static getSnippets(cb): void {
+    public static getSnippets(userId: number, cb): void {
 
         db.get().query(`SELECT contacts.name, timestamp, address, body FROM snippets
                         JOIN contacts
                         WHERE address = phoneNumber
+                        AND userId = ?
                         ORDER BY timestamp DESC`,
+                        [userId],
                         (err, rows) => {
                             if (err) {
                                 return console.log("Error getting all snippets");
