@@ -3,25 +3,17 @@ import * as crypto from "crypto";
 import { MysqlError } from "mysql";
 
 export class User {
-    private id: number;
-    private emailAddress: string;
-    private hash: string;
-    private name: string;
-    private phoneNumber: string;
 
-    constructor(emailAddress, name, phoneNumber) {
-        this.emailAddress = emailAddress;
-        this.name = name;
-        this.phoneNumber = phoneNumber;
+    constructor() {
     }
 
     public static createNewAccount(creationData, cb: (err: MysqlError, results: any) => void): void {
 
         const { email, firstName, lastName, password, phoneNumber } = creationData;
-        const salt = crypto.randomBytes(16).toString("hex");
-        const hash = crypto.pbkdf2Sync(password, salt, 10000, 512, "sha512").toString("hex");
+        const salt: string = crypto.randomBytes(16).toString("hex");
+        const hash: string = crypto.pbkdf2Sync(password, salt, 10000, 512, "sha512").toString("hex");
 
-        const query = `INSERT INTO users
+        const query: string = `INSERT INTO users
                         (emailAddress, firstName, lastName, phoneNumber, salt, hash)
                         VALUES
                         (?, ?, ?, ?, ?, ?)`;
@@ -30,33 +22,30 @@ export class User {
         db.get().query(query, values, (err: MysqlError, results: any) => cb(err, results));
     }
 
-    public static findById(id, cb): void {
-        db.get().query(`SELECT *
-                        FROM users
-                        WHERE id = ?`,
-                        [id],
-                        (err, result) => {
-                            if (err) {
-                                return cb(err, undefined);
-                            } else if (result.length === 0) {
-                                return cb(undefined, undefined);
-                            } else {
-                                return cb(undefined, result);
-                            }
-                        });
+    public static findById(userId: number, cb: (err: MysqlError, result: any) => void): void {
+
+        const query: string = "SELECT * FROM users WHERE id = ?";
+        const values = [userId];
+
+        db.get().query(query, values, (err: MysqlError, results: any) => cb(err, results[0]));
     }
 
-    public static findOne(emailAddress, password, done): void {
-        db.get().query("SELECT firstName, lastName, id, emailAddress, phoneNumber, hash, salt FROM users WHERE emailAddress = ?", [emailAddress],
-            (err, result) => {
-                if (result.length == 0) {
-                    return done(undefined, false, { error: "email or password is invalid" });
+    public static findOne(emailAddress, password, cb: (err: MysqlError, result: any, info: any) => void): void {
+
+        const query: string = `SELECT firstName, lastName, id, emailAddress, phoneNumber, hash, salt 
+                                FROM users 
+                                WHERE emailAddress = ?`;
+        const values = [emailAddress];
+
+        db.get().query(query, values,
+            (err: MysqlError, result: any) => {
+
+                const user = result[0];
+
+                if (!user || User.validatePassword(user.password, user.hash, user.salt)) {
+                    cb(undefined, undefined, { error: "email or password is invalid" });
                 } else {
-                    if (!User.validatePassword(password, result[0].hash, result[0].salt)) {
-                        return done(undefined, false, { error: "email or password is invalid" });
-                    } else {
-                        return done(undefined, result[0]);
-                    }
+                    cb(undefined, user, undefined);
                 }
 
             });
@@ -71,9 +60,9 @@ export class User {
     //         });
     // }
 
-    static validatePassword(password, userHash, userSalt): boolean {
-        const hash = crypto.pbkdf2Sync(password, userSalt, 10000, 512, "sha512").toString("hex");
-        return userHash === hash;
+    public static validatePassword(password: string, hash: string, salt: string): boolean {
+        const calculatedHash: string = crypto.pbkdf2Sync(password, salt, 10000, 512, "sha512").toString("hex");
+        return hash === calculatedHash;
     }
 
 }

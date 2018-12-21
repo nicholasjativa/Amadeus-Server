@@ -10,17 +10,17 @@ export class UsersController {
         this.router.get("/user", this.getUser.bind(this));
     }
 
-    public getUser(req: Request, res: Response, next): void {
+    public getUser(req: Request, res: Response): void {
+
         User.findById(req.session.userId, (error, result) => {
+
             if (error) {
-                console.log(error);
-                return res.send(error);
-            }
-            if (!result) {
-                return res.sendStatus(401);
+                res.send(error);
+            } else if (!result) {
+                res.sendStatus(401);
             }
 
-            res.send({user: { emailAddress: result[0].emailAddress, id: result[0].id }});
+            res.send({ user: { emailAddress: result[0].emailAddress, id: result[0].id } });
         });
     }
 
@@ -56,13 +56,15 @@ export class UsersController {
                 console.log("A user has successfully logged in.");
                 req.session.userId = user.id;
                 req.session.registrationToken = user.registrationToken;
-                res.send({ user: {
-                    emailAddress: user.emailAddress,
-                    id: user.id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    phoneNumber: user.phoneNumber
-                }});
+                res.send({
+                    user: {
+                        emailAddress: user.emailAddress,
+                        id: user.id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        phoneNumber: user.phoneNumber
+                    }
+                });
             } else {
                 res.status(401).json(info.error);
             }
