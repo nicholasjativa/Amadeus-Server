@@ -29,7 +29,7 @@ export class User {
         const query: string = "SELECT * FROM users WHERE id = ?";
         const values = [userId];
 
-        db.get().query(query, values, (err: MysqlError, results: any) => cb(err, results[0]));
+        db.get().query(query, values, (err: MysqlError, results: any) => cb(err, results));
     }
 
     public static findOne(emailAddress: string, password: string, cb: (err: MysqlError, result: any, info: any) => void): void {

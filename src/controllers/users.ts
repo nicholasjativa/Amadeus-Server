@@ -1,38 +1,45 @@
 import { Router, Request, Response } from "express";
 import { User } from "../models/User";
+import { AmadeusAccountCreationData } from "../interfaces/AmadeusAccountCreationData";
 
 export class UsersController {
     public router: Router = Router();
 
     constructor() {
-        this.router.post("/create-account", this.handleCreateAccount.bind(this));
+        this.router.post("/create-account", this.createAccount.bind(this));
         this.router.post("/login", this.handleLogin.bind(this));
         this.router.get("/user", this.getUser.bind(this));
     }
 
     private getUser(req: Request, res: Response): void {
 
-        User.findById(req.session.userId, (error, result) => {
+        const userId: number = req.session.userId;
+
+        User.findById(userId, (error, results) => {
+
+            const user = results[0];
 
             if (error) {
                 res.send(error);
-            } else if (!result) {
+            } else if (!user) {
                 res.sendStatus(401);
+            } else {
+                res.send({ user: { emailAddress: user.emailAddress, id: user.id } });
             }
 
-            res.send({ user: { emailAddress: result[0].emailAddress, id: result[0].id } });
         });
     }
 
-    private handleCreateAccount(req: Request, res: Response): void {
+    private createAccount(req: Request, res: Response): void {
 
-        const accountCreationData = req.body;
+        const accountCreationData: AmadeusAccountCreationData = req.body;
+
         User.createNewAccount(accountCreationData, (err, success) => {
 
             if (err && err.code === "ER_DUP_ENTRY") {
 
                 res.status(400).json({
-                    error: "Email or phone number already exist"
+                    error: "Email or phone number already exist" // TODO figure out how to generlize errors
                 });
 
             } else if (success) {
@@ -47,15 +54,15 @@ export class UsersController {
 
     private handleLogin(req: Request, res: Response): void {
 
-        const emailAddress = req.body.user.emailAddress;
-        const password = req.body.user.password;console.log(req.body)
-        
+        const emailAddress: string = req.body.emailAddress;
+        const password: string = req.body.password;
+
         User.findOne(emailAddress, password, (err, user, info) => {
 
-            if (err) return console.log(err);
+            if (err) return console.log(err); // TODO handle errors
 
             if (user) {
-                console.log("A user has successfully logged in.");
+
                 req.session.userId = user.id;
                 req.session.registrationToken = user.registrationToken;
                 res.send({
