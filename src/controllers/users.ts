@@ -28,11 +28,11 @@ export class UsersController {
 
         const accountCreationData = req.body;
         User.createNewAccount(accountCreationData, (err, success) => {
-            
-            if (err && err.code === 'ER_DUP_ENTRY') {
+
+            if (err && err.code === "ER_DUP_ENTRY") {
 
                 res.status(400).json({
-                    error: 'Email or phone number already exist'
+                    error: "Email or phone number already exist"
                 });
 
             } else if (success) {
@@ -42,7 +42,7 @@ export class UsersController {
                 });
             }
         });
-    
+
     }
 
     public handleLogin(req, res, next): void {
@@ -56,8 +56,8 @@ export class UsersController {
                 console.log("A user has successfully logged in.");
                 req.session.userId = user.id;
                 req.session.registrationToken = user.registrationToken;
-                res.send({ user: { 
-                    emailAddress: user.emailAddress, 
+                res.send({ user: {
+                    emailAddress: user.emailAddress,
                     id: user.id,
                     firstName: user.firstName,
                     lastName: user.lastName,
