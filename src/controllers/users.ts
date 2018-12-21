@@ -10,7 +10,7 @@ export class UsersController {
         this.router.get("/user", this.getUser.bind(this));
     }
 
-    public getUser(req: Request, res: Response): void {
+    private getUser(req: Request, res: Response): void {
 
         User.findById(req.session.userId, (error, result) => {
 
@@ -24,7 +24,7 @@ export class UsersController {
         });
     }
 
-    public handleCreateAccount(req: Request, res: Response): void {
+    private handleCreateAccount(req: Request, res: Response): void {
 
         const accountCreationData = req.body;
         User.createNewAccount(accountCreationData, (err, success) => {
@@ -45,9 +45,11 @@ export class UsersController {
 
     }
 
-    public handleLogin(req, res, next): void {
+    private handleLogin(req: Request, res: Response): void {
+
         const emailAddress = req.body.user.emailAddress;
-        const password = req.body.user.password;
+        const password = req.body.user.password;console.log(req.body)
+        
         User.findOne(emailAddress, password, (err, user, info) => {
 
             if (err) return console.log(err);

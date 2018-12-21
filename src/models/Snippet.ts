@@ -1,74 +1,63 @@
 import * as db from "../db.js";
 import { PhoneNumberUtils } from "../utils/phoneNumberUtils";
+import { MysqlCallback } from "../interfaces/MysqlCallback";
+import { MysqlError } from "mysql";
+import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
+import { SnippetCreationData } from "../interfaces/SnippetCreationData";
 
 export class Snippet {
 
-    public static create(phoneNumber, body, contactId, name, threadId, timestamp, type): void {
-        phoneNumber = PhoneNumberUtils.normalizPhoneNumber(phoneNumber);
-        const values = [phoneNumber, body, contactId, name, threadId, timestamp, type];
+    public static create(data: SnippetCreationData, cb: MysqlModificationCallback): void {
 
-        db.get().query(`INSERT INTO snippets (address, body, contactId, name, threadId, timestamp, type)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                        values, (err, result) => {
-                            if (err) {
-                                console.log("Error inserting snippet into table.");
-                            } else {
-                            }
-                        });
+        const cleanPhoneNumber: string  = PhoneNumberUtils.normalizePhoneNumber(data.address);
+        const query: string = `INSERT INTO snippets 
+                                (address, body, contactId, name, threadId, timestamp, type)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)`; 
+        const values = [data.address, data.body, data.contactId, data.name, data.threadId, data.timestamp, data.type];
+
+        db.get().query(query, values, (err: MysqlError, result: any) => cb(err, result));
     }
 
-    public static delete(phone_num_clean, cb?) {
+    public static delete(phone_num_clean: string, cb: MysqlModificationCallback) {
 
-        db.get().query(`DELETE FROM texts
-                        WHERE address = ?`,
-                        [phone_num_clean],
-                        (err, result) => {
-                            if (cb && typeof cb === "function") {
-                                if (err) {
-                                    return cb(err, undefined);
-                                } else {
-                                    return cb(undefined, result);
-                                }
-                            }
-                        });
+        const query: string = `DELETE FROM texts
+                                WHERE address = ?`;
+        const values = [phone_num_clean];
+
+        db.get().query(query, values, (err: MysqlError, result: any) => cb(err, result));
     }
 
     public static dropTable(): void {
-        db.get().query("TRUNCATE TABLE snippets", (err, result) => {
-            if (err) {
-                console.log("Error truncating table.");
-            } else {
-            }
-        });
+
+        const query: string = "TRUNCATE TABLE snippets";
+
+        db.get().query(query, (err: MysqlError, result: any) => {});
+
     }
 
-    public static getSnippets(userId: number, cb): void {
+    public static getSnippets(userId: number, cb: MysqlCallback): void {
 
-        db.get().query(`SELECT contacts.name, timestamp, address, body FROM snippets
-                        JOIN contacts
-                        WHERE address = phoneNumber
-                        AND userId = ?
-                        ORDER BY timestamp DESC`,
-                        [userId],
-                        (err, rows) => {
-                            if (err) {
-                                return console.log("Error getting all snippets");
-                            } else {
-                                return cb(undefined, rows);
-                            }
-                        });
+        const query: string = `SELECT contacts.name, timestamp, address, body FROM snippets
+                                JOIN contacts
+                                WHERE address = phoneNumber
+                                AND userId = ?
+                                ORDER BY timestamp DESC`;
+        const values = [userId];
+
+        db.get().query(query, values, (err: MysqlError, rows: any[]) => cb(err, rows));
     }
 
-    public static updateConversationSnippet(phone_num_clean, body, timestamp, cb): void {
-        phone_num_clean = PhoneNumberUtils.normalizPhoneNumber(phone_num_clean);
-
-        const values = [phone_num_clean, phone_num_clean, body, timestamp, body, timestamp];
-        db.get().query(`INSERT INTO snippets
-                        (address, name, body, timestamp)
-                        VALUES (?, ?, ?, ?)
-                        ON DUPLICATE KEY UPDATE
-                        body = ?, timestamp = ?`,
-                        values,
+    public static updateConversationSnippet(phone_num_clean: string, body: string, timestamp: string, cb: MysqlModificationCallback): void {
+        
+        const cleanPhoneNumber: string = PhoneNumberUtils.normalizePhoneNumber(phone_num_clean);
+        const query: string = `INSERT INTO snippets
+                                (address, name, body, timestamp)
+                                VALUES (?, ?, ?, ?)
+                                ON DUPLICATE KEY UPDATE
+                                body = ?, timestamp = ?`;
+        const values = [cleanPhoneNumber, cleanPhoneNumber, body, timestamp, body, timestamp];
+        
+        db.get().query(query, values,
                         (err, result) => {
                             if (cb && typeof cb === "function") {
                                 if (err) {

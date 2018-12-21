@@ -1,13 +1,15 @@
 import * as db from "../db";
 import * as crypto from "crypto";
 import { MysqlError } from "mysql";
+import { MysqlCallback } from "../interfaces/MysqlCallback";
+import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
 
 export class User {
 
     constructor() {
     }
 
-    public static createNewAccount(creationData, cb: (err: MysqlError, results: any) => void): void {
+    public static createNewAccount(creationData, cb: MysqlModificationCallback): void {
 
         const { email, firstName, lastName, password, phoneNumber } = creationData;
         const salt: string = crypto.randomBytes(16).toString("hex");
@@ -22,7 +24,7 @@ export class User {
         db.get().query(query, values, (err: MysqlError, results: any) => cb(err, results));
     }
 
-    public static findById(userId: number, cb: (err: MysqlError, result: any) => void): void {
+    public static findById(userId: number, cb: MysqlCallback): void {
 
         const query: string = "SELECT * FROM users WHERE id = ?";
         const values = [userId];
@@ -30,7 +32,7 @@ export class User {
         db.get().query(query, values, (err: MysqlError, results: any) => cb(err, results[0]));
     }
 
-    public static findOne(emailAddress, password, cb: (err: MysqlError, result: any, info: any) => void): void {
+    public static findOne(emailAddress: string, password: string, cb: (err: MysqlError, result: any, info: any) => void): void {
 
         const query: string = `SELECT firstName, lastName, id, emailAddress, phoneNumber, hash, salt 
                                 FROM users 
@@ -42,7 +44,7 @@ export class User {
 
                 const user = result[0];
 
-                if (!user || User.validatePassword(user.password, user.hash, user.salt)) {
+                if (!user || !User.validatePassword(password, user.hash, user.salt)) {
                     cb(undefined, undefined, { error: "email or password is invalid" });
                 } else {
                     cb(undefined, user, undefined);
