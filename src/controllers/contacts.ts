@@ -11,7 +11,9 @@ export class ContactsController {
     }
 
     private handleReceivingContacts(req: Request, res: Response): void {
+
         const contacts: any[] = JSON.parse(req.body.contacts);
+        const userId: number = req.body.userId;
 
         contacts.forEach((obj: { contactId: string, displayName: string, phoneNumber: string}) => {
 
@@ -19,7 +21,7 @@ export class ContactsController {
             const displayName: string = obj.displayName;
             const phoneNumber: string = obj.phoneNumber;
 
-            Contact.saveContact(contactId, displayName, phoneNumber);
+            Contact.saveContact(contactId, displayName, phoneNumber, userId);
         });
 
         res.sendStatus(200);

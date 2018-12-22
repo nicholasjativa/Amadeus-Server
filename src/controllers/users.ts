@@ -9,6 +9,7 @@ export class UsersController {
         this.router.post("/create-account", this.createAccount.bind(this));
         this.router.post("/login", this.handleLogin.bind(this));
         this.router.get("/user", this.getUser.bind(this));
+        this.router.post("/update-registration-token", this.updateRegistrationToken.bind(this));
     }
 
     private getUser(req: Request, res: Response): void {
@@ -78,6 +79,23 @@ export class UsersController {
                 res.status(401).json(info.error);
             }
 
+        });
+    }
+
+    private updateRegistrationToken(req: Request, res: Response): void {
+
+        const token: string = req.body.registrationToken;
+        const userId: number = req.body.userId;
+
+        User.updateRegistrationToken(userId, token, (err, result) => {
+
+            if (err) {
+                res.send(400);
+            }
+
+            if (result) {
+                res.send(200);
+            }
         });
     }
 
