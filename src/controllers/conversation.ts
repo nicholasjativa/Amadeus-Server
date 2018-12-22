@@ -15,7 +15,6 @@ import { Contact } from "../models/Contact";
 
 export class ConversationController {
     public router: Router = Router();
-    public io: SocketIO.Server;
     private readonly MESSAGE_STATE_PENDING: string = "pending";
     private readonly MESSAGE_STATE_GCM_SUCCESS: string = "gcm_success";
     private readonly MESSAGE_STATE_GCM_ERROR: string = "gcm_error";
@@ -23,11 +22,11 @@ export class ConversationController {
     private readonly MESSAGE_STATE_PHONE_ERROR: string = "phone_error";
 
 
-    constructor(io: SocketIO.Server) {
-        this.io = io;
+    constructor(private io: SocketIO.Server) {
+
         this.io.on("connection", (socket) => {
+
             console.log("Knightmare frame initialised on server.");
-            // send upstream on websockete when message has successfully been sent on phone
             socket.send("Knightmare Frame connection established.");
         });
 
@@ -113,8 +112,11 @@ export class ConversationController {
 
 
     public relayMessageToAndroid(req: Request, res: Response): void {
+
         const timestamp = Date.now();
         const amadeusId = timestamp + req.body.toPhoneNumber;
+        const userId: string = req.session.userId;
+        const registrationToken: string = req.session.registrationToken;
 
         const payload = {
             data: {
@@ -132,6 +134,7 @@ export class ConversationController {
             phone_num_clean: req.body.toPhoneNumber,
             amadeusId,
             timestamp,
+            userId
         };
 
         this.storeMessageInDb(message);
@@ -140,7 +143,7 @@ export class ConversationController {
 
         res.send(JSON.stringify({message: "OK"}));
 
-        admin.messaging().sendToDevice(req.session.registrationToken, payload)
+        admin.messaging().sendToDevice(registrationToken, payload)
             .then(data => {
 
                 // TODO, this message should come from a mysql query
