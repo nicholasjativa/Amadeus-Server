@@ -22,15 +22,16 @@ export class Contact {
         db.get().query(query, (err: MysqlError, rows: any[]) => cb(err, rows));
     }
 
-    public static saveContact(id: string, name: string, phoneNumber: string): void {
-        
+    public static saveContact(id: string, name: string, phoneNumber: string, userId: number): void {
+
         const cleanPhoneNumber: string = PhoneNumberUtils.normalizePhoneNumber(phoneNumber);
-        const query: string = `INSERT INTO contacts (contactId, name, phoneNumber) VALUES (?, ?, ?)
+        const query: string = `INSERT INTO contacts (contactId, name, phoneNumber, userId)
+                                VALUES (?, ?, ?, ?)
                                 ON DUPLICATE KEY UPDATE
                                 phoneNumber = ?,
                                 name = ?`;
-        const values = [id, name, cleanPhoneNumber, cleanPhoneNumber, name];
-        
+        const values = [id, name, cleanPhoneNumber, userId, cleanPhoneNumber, name];
+
         db.get().query(query, values);
     }
 

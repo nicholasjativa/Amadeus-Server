@@ -39,8 +39,10 @@ export class ConversationController {
     }
 
     private catchOutgoingMessagesSentOnAndroid(req: Request, res: Response): void {
+
         const timestamp = req.body.timestamp;
         const amadeusId = timestamp + req.body.toPhoneNumber;
+        const userId: number = req.body.userId;
         const message = {
             msgid_phone_db: req.body.msgid_phone_db,
             phone_num_clean: req.body.toPhoneNumber,
@@ -49,7 +51,8 @@ export class ConversationController {
             toPhoneNumber: req.body.toPhoneNumber,
             textMessageBody: req.body.textMessageBody,
             amadeusId,
-            timestamp
+            timestamp,
+            userId
         };
 
         this.storeMessageInDb(message);
@@ -60,6 +63,7 @@ export class ConversationController {
     }
 
     private getConversationMessages(req: Request, res: Response): void {
+
         const phone_num_clean = req.body.phone_num_clean;
         const userId = req.session.userId;
 
@@ -88,8 +92,10 @@ export class ConversationController {
     }
 
     private handleSmsReceivedOnAndroidAndRelayedHere(req: Request, res: Response): void {
-        const timestamp = Date.now();
-        const amadeusId = timestamp + req.body.fromPhoneNumber;
+
+        const timestamp: number = Date.now();
+        const amadeusId: string = timestamp + req.body.fromPhoneNumber;
+        const userId: number = req.body.userId;
 
         const message = {
             fromPhoneNumber: req.body.fromPhoneNumber,
@@ -98,6 +104,7 @@ export class ConversationController {
             textMessageBody: req.body.textMessageBody,
             amadeusId,
             timestamp,
+            userId
         };
         res.sendStatus(200);
         this.io.emit("receivedMessageFromAndroid", message);
@@ -164,6 +171,7 @@ export class ConversationController {
         const phone_num_clean: string = message.phone_num_clean;
         const textMessageBody: string = message.textMessageBody;
         const timestamp: any = message.timestamp;
+        const userId: number = message.userId;
 
         Snippet.updateConversationSnippet(phone_num_clean, textMessageBody, timestamp, (err, result) => {
             if (err) {
@@ -173,7 +181,7 @@ export class ConversationController {
             }
         });
 
-        Text.create(msgid_phone_db, phone_num_clean, fromPhoneNumber, toPhoneNumber, textMessageBody, timestamp,
+        Text.create(msgid_phone_db, phone_num_clean, fromPhoneNumber, toPhoneNumber, textMessageBody, timestamp, userId,
             (err, result) => {
                 if (err) return console.log(err);
 

@@ -53,14 +53,15 @@ export class User {
             });
     }
 
-    // save(): void {
-    //     db.get().query("INSERT INTO users (emailAddress, hash, salt, phoneNumber, name) VALUES (?, ?, ?, ?, ?)",
-    //         [this.emailAddress, this.hash, this.salt, this.phoneNumber, this.name],
-    //         (err, result) => {
-    //             if (err) console.log("Error in Users table: ", err);
-    //             else console.log("Successfully saved new user into Users table.");
-    //         });
-    // }
+    public static updateRegistrationToken(userId: number, token: string, cb: MysqlModificationCallback): void {
+
+        const query: string = `UPDATE users
+                                SET registrationToken = ?
+                                WHERE id = ?`;
+        const values = [token, userId];
+
+        db.get().query(query, values, (err: MysqlError, result: any) => cb(err, result));
+    }
 
     public static validatePassword(password: string, hash: string, salt: string): boolean {
         const calculatedHash: string = crypto.pbkdf2Sync(password, salt, 10000, 512, "sha512").toString("hex");

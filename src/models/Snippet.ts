@@ -40,9 +40,10 @@ export class Snippet {
         const query: string = `SELECT contacts.name, timestamp, address, body FROM snippets
                                 JOIN contacts
                                 WHERE address = phoneNumber
-                                AND userId = ?
+                                AND snippets.userId = ?
+                                AND contacts.userId = ?
                                 ORDER BY timestamp DESC`;
-        const values = [userId];
+        const values = [userId, userId];
 
         db.get().query(query, values, (err: MysqlError, rows: any[]) => cb(err, rows));
     }
