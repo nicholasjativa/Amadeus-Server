@@ -7,7 +7,7 @@ export class Contact {
 
     public static getContact(phoneNumber: string, cb: MysqlCallback): void {
 
-        const query: string = `SELECT * 
+        const query: string = `SELECT *
                                 FROM contacts
                                 WHERE phoneNumber = ?`;
         const values: string[] = [phoneNumber];
@@ -23,14 +23,14 @@ export class Contact {
     }
 
     public static saveContact(id: string, name: string, phoneNumber: string): void {
-        
+
         const cleanPhoneNumber: string = PhoneNumberUtils.normalizePhoneNumber(phoneNumber);
         const query: string = `INSERT INTO contacts (contactId, name, phoneNumber) VALUES (?, ?, ?)
                                 ON DUPLICATE KEY UPDATE
                                 phoneNumber = ?,
                                 name = ?`;
         const values = [id, name, cleanPhoneNumber, cleanPhoneNumber, name];
-        
+
         db.get().query(query, values);
     }
 

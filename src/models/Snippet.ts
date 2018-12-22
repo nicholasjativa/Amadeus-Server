@@ -10,9 +10,9 @@ export class Snippet {
     public static create(data: SnippetCreationData, cb: MysqlModificationCallback): void {
 
         const cleanPhoneNumber: string  = PhoneNumberUtils.normalizePhoneNumber(data.address);
-        const query: string = `INSERT INTO snippets 
+        const query: string = `INSERT INTO snippets
                                 (address, body, contactId, name, threadId, timestamp, type)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)`; 
+                                VALUES (?, ?, ?, ?, ?, ?, ?)`;
         const values = [data.address, data.body, data.contactId, data.name, data.threadId, data.timestamp, data.type];
 
         db.get().query(query, values, (err: MysqlError, result: any) => cb(err, result));
@@ -48,7 +48,7 @@ export class Snippet {
     }
 
     public static updateConversationSnippet(phone_num_clean: string, body: string, timestamp: string, cb: MysqlModificationCallback): void {
-        
+
         const cleanPhoneNumber: string = PhoneNumberUtils.normalizePhoneNumber(phone_num_clean);
         const query: string = `INSERT INTO snippets
                                 (address, name, body, timestamp)
@@ -56,7 +56,7 @@ export class Snippet {
                                 ON DUPLICATE KEY UPDATE
                                 body = ?, timestamp = ?`;
         const values = [cleanPhoneNumber, cleanPhoneNumber, body, timestamp, body, timestamp];
-        
+
         db.get().query(query, values,
                         (err, result) => {
                             if (cb && typeof cb === "function") {

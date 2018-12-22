@@ -34,8 +34,8 @@ export class User {
 
     public static findOne(emailAddress: string, password: string, cb: (err: MysqlError, result: any, info: any) => void): void {
 
-        const query: string = `SELECT firstName, lastName, id, emailAddress, phoneNumber, hash, salt 
-                                FROM users 
+        const query: string = `SELECT firstName, lastName, id, emailAddress, phoneNumber, hash, salt
+                                FROM users
                                 WHERE emailAddress = ?`;
         const values = [emailAddress];
 
