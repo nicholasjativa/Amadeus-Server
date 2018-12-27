@@ -4,6 +4,7 @@ import { MysqlCallback } from "../interfaces/MysqlCallback";
 import { MysqlError } from "mysql";
 import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
 import { SnippetCreationData } from "../interfaces/SnippetCreationData";
+import { AmadeusMessage } from "../interfaces/AmadeusMessage";
 
 export class Snippet {
 
@@ -48,37 +49,43 @@ export class Snippet {
         db.get().query(query, values, (err: MysqlError, rows: any[]) => cb(err, rows));
     }
 
-    public static updateConversationSnippet(phone_num_clean: string, body: string, timestamp: string, cb: MysqlModificationCallback): void {
+    public static updateConversationSnippet(message: AmadeusMessage, cb: MysqlModificationCallback): void {
 
-        const cleanPhoneNumber: string = PhoneNumberUtils.normalizePhoneNumber(phone_num_clean);
-        const query: string = `INSERT INTO snippets
-                                (address, name, body, timestamp)
-                                VALUES (?, ?, ?, ?)
+        const cleanPhoneNumber: string = PhoneNumberUtils.normalizePhoneNumber(message.phone_num_clean);
+        const insertQuery: string = `INSERT INTO snippets
+                                (address, name, body, timestamp, userId)
+                                VALUES (?, ?, ?, ?, ?)
                                 ON DUPLICATE KEY UPDATE
                                 body = ?, timestamp = ?`;
-        const values = [cleanPhoneNumber, cleanPhoneNumber, body, timestamp, body, timestamp];
+        const insertValues = [cleanPhoneNumber, cleanPhoneNumber, message.textMessageBody,
+                                message.timestamp, message.userId, message.textMessageBody, message.timestamp];
 
-        db.get().query(query, values,
+        const selectQuery: string = `SELECT snippets.id, contacts.name, timestamp, body, threadId, type,
+                                address, snippets.contactId
+                                FROM snippets
+                                JOIN contacts
+                                ON phoneNumber = address
+                                WHERE address = ?`;
+        const selectValues = [cleanPhoneNumber];
+
+        db.get().query(insertQuery, insertValues,
                         (err, result) => {
                             if (cb && typeof cb === "function") {
                                 if (err) {
                                     return cb(err, undefined);
                                 } else {
-                                    db.get().query(`SELECT snippets.id, contacts.name, timestamp, body, threadId, type,
-                                                    address, snippets.contactId
-                                                    FROM snippets
-                                                    JOIN contacts
-                                                    ON phoneNumber = address
-                                                    WHERE address = ?`,
-                                                    [phone_num_clean],
+                                    db.get().query(selectQuery, selectValues,
                                                     (err, result) => cb(undefined, result));
                                 }
                             }
                         });
-        db.get().query(`INSERT IGNORE INTO contacts
-                        (name, phoneNumber)
-                        VALUES (?, ?)`,
-                        [phone_num_clean, phone_num_clean]);
+
+        const insertContactQuery: string = `INSERT IGNORE INTO contacts
+                                            (name, phoneNumber, userId)
+                                            VALUES (?, ?, ?)`;
+        const insertContactValues = [cleanPhoneNumber, cleanPhoneNumber, message.userId];
+
+        db.get().query(insertContactQuery, insertContactValues);
     }
 
 
