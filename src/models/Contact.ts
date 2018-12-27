@@ -7,7 +7,7 @@ export class Contact {
 
     public static getContact(phoneNumber: string, cb: MysqlCallback): void {
 
-        const query: string = `SELECT * 
+        const query: string = `SELECT *
                                 FROM contacts
                                 WHERE phoneNumber = ?`;
         const values: string[] = [phoneNumber];

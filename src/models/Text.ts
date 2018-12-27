@@ -2,6 +2,7 @@ import * as db from "../db.js";
 import { MysqlError } from "mysql";
 import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
 import { MysqlCallback } from "../interfaces/MysqlCallback";
+import { AmadeusMessage } from "..//interfaces/AmadeusMessage";
 
 export class Text {
 
@@ -9,10 +10,11 @@ export class Text {
     }
     // TODO this will have to be refactored since we dont know the thread id when a
     // message from a new phone comes in
-    public static create(msgid_phone_db, phone_num_clean, fromPhoneNumber, toPhoneNumber, textMessageBody, timestamp, userId, cb: MysqlModificationCallback): void {
+    public static create(message: AmadeusMessage, cb: MysqlModificationCallback): void {
 
-        const values = [fromPhoneNumber, toPhoneNumber, textMessageBody, timestamp, timestamp + toPhoneNumber,
-                        msgid_phone_db, phone_num_clean, userId];
+        const values = [message.fromPhoneNumber, message.toPhoneNumber, message.textMessageBody,
+                        message.timestamp, message.amadeusId, message.msgid_phone_db,
+                        message.phone_num_clean, message.userId];
         const query = `INSERT INTO texts
                         (fromPhoneNumber, toPhoneNumber, textMessageBody, timestamp,
                         amadeusId, msgid_phone_db, phone_num_clean, userId)
@@ -30,7 +32,7 @@ export class Text {
                                 ORDER BY timestamp DESC
                                 LIMIT 30`;
         const values = [phone_num_clean, userId];
-        
+
         db.get().query(query, values, (err: MysqlError, rows: any) => cb(err, rows.reverse()));
     }
 
@@ -38,7 +40,7 @@ export class Text {
 
         const query: string = `UPDATE texts
                                 SET status = ?
-                                WHERE amadeusId = ?`; 
+                                WHERE amadeusId = ?`;
         const values = [status, id];
 
         db.get().query(query, values, (err: MysqlError, result: any) => cb(err, result));
