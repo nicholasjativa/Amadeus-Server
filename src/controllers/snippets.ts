@@ -24,14 +24,14 @@ export class SnippetsController {
 
     private handleSnippetsReceived(req: Request, res: Response): void {
 
-        // Snippet.dropTable(); // TODO this will need to change to accommadate for users (not just me)
+        // Snippet.dropTable(); TODO this will need to change to accommadate for users (not just me)
         const snippetsArr = JSON.parse(req.body.snippets);
         for (let i = 0; i < snippetsArr.length; i++) {
             const snippetData: SnippetCreationData = snippetsArr[i];
 
             Snippet.create(snippetData, () => {}); // TODO handle result/error
         }
-        res.sendStatus(200).json({ success: "OK" });
+        res.sendStatus(200);
     }
 
 }
