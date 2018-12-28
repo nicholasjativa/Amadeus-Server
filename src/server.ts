@@ -96,7 +96,7 @@ export class AmadeusServer {
 
     private listen(): void {
         this.server.listen(this.port, () => {
-            console.log("App is running at http://localhost:%d in %s mode", this.port, this.app.get("env"));
+            console.log(`Knightmare frame is running at http://localhost:${this.port} in ${this.app.get("env")} mode`);
         });
     }
 

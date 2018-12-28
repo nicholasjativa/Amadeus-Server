@@ -12,8 +12,6 @@ import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallba
 /*
     TODOs
         - change all emits to user specific
-
-        
 */
 
 export class ConversationController {
@@ -29,11 +27,12 @@ export class ConversationController {
 
         this.io.on("connection", (socket) => {
 
-            let session = socket.request.session;
-            session.socketId = socket.id;
-            session.save();
+            const session = socket.request.session;
+            // session.socketId = socket.id;
+            // session.save();
             this.userSockets.set(session.userId, socket); // TODO this should change eventually as well
-            console.log("Knightmare frame initialised on server.");
+            console.log(`Knightmare frame accepting incoming socket connection..`);
+            console.log(`Total number of connections is ${this.userSockets.size}`);
             socket.send("Knightmare Frame connection established.");
         });
 
