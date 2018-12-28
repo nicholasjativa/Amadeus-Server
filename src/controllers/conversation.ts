@@ -35,7 +35,7 @@ export class ConversationController {
 
         this.router.post("/send-sms-to-server", this.receiveSmsFromAndroid.bind(this));
         this.router.post("/send-to-device", this.relayMessageToAndroid.bind(this));
-        this.router.post("/getConversationMessages", this.getConversationMessages.bind(this));
+        this.router.post("/get-conversation-messages", this.getConversationMessages.bind(this));
         this.router.post("/own", this.catchOutgoingMessagesSentOnAndroid.bind(this));
         this.router.post("/update-outgoing-text-message-id", this.handleUpdateOutgoingTextId.bind(this));
     }
