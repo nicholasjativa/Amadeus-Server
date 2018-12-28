@@ -68,7 +68,7 @@ export class ConversationController {
                 // TODO do this the right way
                 this.io.emit("ownMessageSentOnAndroid", Object.assign({ status: this.MESSAGE_STATE_PHONE_SUCCESS }, message));
                 Text.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_PHONE_SUCCESS, (err, result) => { });
-                res.sendStatus(200);
+                res.json({ success: true });
             }
 
         });

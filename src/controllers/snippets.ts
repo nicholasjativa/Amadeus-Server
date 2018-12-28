@@ -31,7 +31,7 @@ export class SnippetsController {
 
             Snippet.create(snippetData, () => {}); // TODO handle result/error
         }
-        res.sendStatus(200).json({ success: "OK" });
+        res.json({ success: true });
     }
 
 }
