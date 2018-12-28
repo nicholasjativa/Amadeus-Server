@@ -12,8 +12,8 @@ import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallba
 /*
     TODOs
         - change all emits to user specific
-        - include return types for all functions
 
+        
 */
 
 export class ConversationController {
@@ -23,12 +23,16 @@ export class ConversationController {
     private readonly MESSAGE_STATE_GCM_ERROR: string = "gcm_error";
     private readonly MESSAGE_STATE_PHONE_SUCCESS: string = "phone_success";
     private readonly MESSAGE_STATE_PHONE_ERROR: string = "phone_error";
-
+    private userSockets: Map<number, SocketIO.Socket> = new Map(); // TODO eventually use rooms?
 
     constructor(private io: SocketIO.Server) {
 
         this.io.on("connection", (socket) => {
 
+            let session = socket.request.session;
+            session.socketId = socket.id;
+            session.save();
+            this.userSockets.set(session.userId, socket); // TODO this should change eventually as well
             console.log("Knightmare frame initialised on server.");
             socket.send("Knightmare Frame connection established.");
         });
@@ -45,6 +49,7 @@ export class ConversationController {
         const timestamp = req.body.timestamp;
         const amadeusId = timestamp + req.body.toPhoneNumber;
         const userId: number = req.body.userId;
+
         const message = {
             msgid_phone_db: req.body.msgid_phone_db,
             phone_num_clean: req.body.toPhoneNumber,
@@ -57,7 +62,7 @@ export class ConversationController {
             userId
         };
 
-        this.storeMessageInDb(message, (err, result) => {
+        this.storeMessageInDb(message, (err, result, snippet) => {
 
             if (err) {
                 // TODO error handling
@@ -65,8 +70,11 @@ export class ConversationController {
                 res.send(500);
             } else {
 
-                // TODO do this the right way
-                this.io.emit("ownMessageSentOnAndroid", Object.assign({ status: this.MESSAGE_STATE_PHONE_SUCCESS }, message));
+                const userOpenSocket = this.userSockets.get(userId);
+                if (userOpenSocket) {
+                    userOpenSocket.emit("ownMessageSentOnAndroid", Object.assign({ status: this.MESSAGE_STATE_PHONE_SUCCESS }, message));
+                    userOpenSocket.emit("updateSnippetSidebar", snippet);
+                }
                 Text.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_PHONE_SUCCESS, (err, result) => { });
                 res.json({ success: true });
             }
@@ -118,14 +126,19 @@ export class ConversationController {
             timestamp,
         };
 
-        this.storeMessageInDb(message, (err, result) => {
+        this.storeMessageInDb(message, (err, result, snippet) => {
 
             if (err) {
                 // handle error
                 res.sendStatus(500);
             } else {
-                res.sendStatus(200);
-                this.io.emit("receivedMessageFromAndroid", message);
+                res.sendStatus(200); // TODO we may be able to use req.session.socketId if Volley supports cookie
+
+                const userOpenSocket = this.userSockets.get(req.body.userId);
+                if (userOpenSocket) {
+                    userOpenSocket.emit("receivedMessageFromAndroid", message);
+                    userOpenSocket.emit("updateSnippetSidebar", snippet);
+                }
             }
 
         });
@@ -160,22 +173,30 @@ export class ConversationController {
             }
         };
 
-        this.storeMessageInDb(amadeusMessage, (err, result) => {
+        this.storeMessageInDb(amadeusMessage, (err, result, snippet) => {
 
             if (err) {
                 // TODO handle error
             } else {
 
-                const registrationToken: string = req.session.registrationToken;
+                res.json({ success: true });
+
                 // TODO this should come from a mysql query (update pending to sent)
-                this.sendMessageToWebsocket(Object.assign({ status: this.MESSAGE_STATE_PENDING }, amadeusMessage));
-                res.send(JSON.stringify({ message: "OK" }));
+
+                const userOpenSocket = this.userSockets.get(userId);
+                if (userOpenSocket) {
+                    const message = Object.assign({ status: this.MESSAGE_STATE_PENDING }, amadeusMessage);
+                    userOpenSocket.emit("sendOutgoingMessageUpstreamToWebsocketWithInitialState", message);
+                    userOpenSocket.emit("updateSnippetSidebar", snippet);
+                }
+
+                const registrationToken: string = req.session.registrationToken;
                 admin.messaging().sendToDevice(registrationToken, fcmPayload)
                     .then(data => {
 
                         // TODO, this message should come from a mysql query
-                        const updatedMessage = Object.assign({ status: this.MESSAGE_STATE_GCM_SUCCESS }, amadeusMessage);
-                        this.io.emit("sendToAndroidSuccessful", updatedMessage);
+                        // const updatedMessage = Object.assign({ status: this.MESSAGE_STATE_GCM_SUCCESS }, amadeusMessage);
+                        // this.io.emit("sendToAndroidSuccessful", updatedMessage);
                         Text.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_GCM_SUCCESS, (err, result) => {
                             if (err) console.log(err);
                             else {
@@ -194,24 +215,19 @@ export class ConversationController {
 
     }
 
-    private sendMessageToWebsocket(message: any): void {
-        this.io.emit("sendOutgoingMessageUpstreamToWebsocketWithInitialState", message);
-    }
-
     private storeMessageInDb(message: AmadeusMessage, cb: MysqlModificationCallback): void {
 
-        Snippet.updateConversationSnippet(message, (err, result) => {
+        Snippet.updateConversationSnippet(message, (err, snippetResult) => {
             if (err) {
                 console.log("Coming from Snippet.updateConversationSnippet");
                 console.log(err);
             } else {
-                this.io.emit("updateSnippetSidebar", result[0]);
+                // TODO figure out whether the updateconversationsnippet call
+                // should be a multiple statement with Text.create
+                Text.create(message, (err, result) => cb(err, result, snippetResult[0]));
             }
         });
 
-        // TODO figure out whether the updateconversationsnippet call
-        // should be a multiple statement with Text.create
-        Text.create(message, (err, result) => cb(err, result));
     }
 
     private handleUpdateOutgoingTextId(req: Request, res: Response): void {

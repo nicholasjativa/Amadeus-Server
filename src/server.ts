@@ -79,7 +79,6 @@ export class AmadeusServer {
             socket.client.request.originalUrl = socket.client.request.url;
             cookieParser()(socket.client.request, socket.client.request.res, () => {
                 sessionMiddleware(socket.client.request, socket.client.request.res, next);
-                next();
             });
         });
     }
