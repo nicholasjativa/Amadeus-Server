@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import * as bodyParser from "body-parser";
+import * as cookieParser from "cookie-parser";
 import * as db from "./db";
 import * as express from "express";
 import { createServer, Server } from "http";
@@ -50,9 +51,8 @@ export class AmadeusServer {
     }
 
     private setupMiddlewares(): void {
-        this.app.use(allowCrossDomain);
-        this.app.set("trust proxy", true);
-        this.app.use(session({
+
+        const sessionMiddleware = session({
             name: "amadeus",
             secret: "SECRETE",
             resave: false,
@@ -62,13 +62,26 @@ export class AmadeusServer {
                 maxAge: 6000000,
                 secure: false
             }
-        }));
+        });
+
+        this.app.use(allowCrossDomain);
+        this.app.set("trust proxy", true);
+        this.app.use(sessionMiddleware);
         this.app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+            // TODO error handling?
             next();
         });
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(express.static(path.join(__dirname, "public/js/dist"), { maxAge: 31557600000 }));
+        // for providing the express session to the socket
+        this.io.use((socket, next) => {
+            socket.client.request.originalUrl = socket.client.request.url;
+            cookieParser()(socket.client.request, socket.client.request.res, () => {
+                sessionMiddleware(socket.client.request, socket.client.request.res, next);
+                next();
+            });
+        });
     }
 
     private setupRoutes(): void {
