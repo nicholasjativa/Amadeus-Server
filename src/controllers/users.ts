@@ -25,7 +25,15 @@ export class UsersController {
             } else if (!user) {
                 res.sendStatus(401);
             } else {
-                res.send({ user: { emailAddress: user.emailAddress, id: user.id } });
+                res.send({
+                    user: {
+                        emailAddress: user.emailAddress,
+                        id: user.id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        phoneNumber: user.phoneNumber
+                    }
+                });
             }
 
         });
