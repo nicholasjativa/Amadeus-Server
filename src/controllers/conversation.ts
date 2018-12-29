@@ -8,6 +8,7 @@ import { Contact } from "../models/Contact";
 import { AmadeusMessage } from "../interfaces/AmadeusMessage";
 import { MysqlCallback } from "../interfaces/MysqlCallback";
 import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
+import { PhoneNumberUtils } from "../utils/phoneNumberUtils";
 
 /*
     TODOs
@@ -57,10 +58,10 @@ export class ConversationController {
 
         const message = {
             msgid_phone_db: req.body.msgid_phone_db,
-            phone_num_clean: req.body.toPhoneNumber,
+            phone_num_clean: PhoneNumberUtils.normalizePhoneNumber(req.body.toPhoneNumber),
             thread_id: req.body.thread_id,
-            fromPhoneNumber: req.body.fromPhoneNumber,
-            toPhoneNumber: req.body.toPhoneNumber,
+            fromPhoneNumber: PhoneNumberUtils.normalizePhoneNumber(req.body.fromPhoneNumber),
+            toPhoneNumber: PhoneNumberUtils.normalizePhoneNumber(req.body.toPhoneNumber),
             textMessageBody: req.body.textMessageBody,
             amadeusId,
             timestamp,
