@@ -31,7 +31,13 @@ export class ConversationController {
             // session.socketId = socket.id;
             // session.save();
             this.userSockets.set(session.userId, socket); // TODO this should change eventually as well
-            console.log(`Knightmare frame accepting incoming socket connection..`);
+            socket.on("disconnect", () => {
+                this.userSockets.delete(session.userId);
+                console.log(`Socket has disconnected from Knightmare Frame`);
+                console.log(`Total number of connections is now ${this.userSockets.size}`);
+            });
+
+            console.log(`Knightmare Frame accepting incoming socket connection..`);
             console.log(`Total number of connections is ${this.userSockets.size}`);
             socket.send("Knightmare Frame connection established.");
         });
