@@ -1,4 +1,4 @@
-export interface SnippetCreationData {
+export interface ConversationPreviewCreationData {
     address: string;
     body: string;
     contactId: string;

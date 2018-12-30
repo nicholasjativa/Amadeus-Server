@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { Response, Request, Router, } from "express";
-import { Snippet } from "../models/Snippet";
-import { Text } from "../models/Text";
+import { ConversationPreview } from "../models/ConversationPreview";
+import { TextMessage } from "../models/TextMessage";
 import { messaging } from "firebase-admin";
 import * as SocketIO from "socket.io";
 import { Contact } from "../models/Contact";
@@ -81,7 +81,7 @@ export class ConversationController {
                     userOpenSocket.emit("ownMessageSentOnAndroid", Object.assign({ status: this.MESSAGE_STATE_PHONE_SUCCESS }, message));
                     userOpenSocket.emit("updateSnippetSidebar", snippet);
                 }
-                Text.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_PHONE_SUCCESS, (err, result) => { });
+                TextMessage.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_PHONE_SUCCESS, (err, result) => { });
                 res.json({ success: true });
             }
 
@@ -93,7 +93,7 @@ export class ConversationController {
         const phone_num_clean = req.body.phone_num_clean;
         const userId = req.session.userId;
 
-        Text.getAllMessages(phone_num_clean, userId, (err, messagesRows) => {
+        TextMessage.getAllMessages(phone_num_clean, userId, (err, messagesRows) => {
             if (err) {
                 return res.json(err);
             } else {
@@ -183,10 +183,11 @@ export class ConversationController {
 
             if (err) {
                 // TODO handle error
+                console.log(err);
             } else {
 
                 res.json({ success: true });
-
+                console.log("here");
                 // TODO this should come from a mysql query (update pending to sent)
 
                 const userOpenSocket = this.userSockets.get(userId);
@@ -203,7 +204,7 @@ export class ConversationController {
                         // TODO, this message should come from a mysql query
                         // const updatedMessage = Object.assign({ status: this.MESSAGE_STATE_GCM_SUCCESS }, amadeusMessage);
                         // this.io.emit("sendToAndroidSuccessful", updatedMessage);
-                        Text.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_GCM_SUCCESS, (err, result) => {
+                        TextMessage.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_GCM_SUCCESS, (err, result) => {
                             if (err) console.log(err);
                             else {
                                 console.log("Updated message to completed");
@@ -223,14 +224,14 @@ export class ConversationController {
 
     private storeMessageInDb(message: AmadeusMessage, cb: MysqlModificationCallback): void {
 
-        Snippet.updateConversationSnippet(message, (err, snippetResult) => {
+        ConversationPreview.updatePreview(message, (err, snippetResult) => {
             if (err) {
-                console.log("Coming from Snippet.updateConversationSnippet");
+                console.log("Coming from ConversationPreview.updatePreivew");
                 console.log(err);
             } else {
-                // TODO figure out whether the updateconversationsnippet call
-                // should be a multiple statement with Text.create
-                Text.create(message, (err, result) => cb(err, result, snippetResult[0]));
+                // TODO figure out whether the update call
+                // should be a multiple statement with TextMessage.create
+                TextMessage.create(message, (err, result) => cb(err, result, snippetResult[0]));
             }
         });
 
@@ -240,7 +241,7 @@ export class ConversationController {
         const amadeusId = req.body.amadeusId;
         const msgid_phone_db = req.body.msgid_phone_db;
 
-        Text.updateMessageId(amadeusId, msgid_phone_db, (err, result) => {
+        TextMessage.updateMessageId(amadeusId, msgid_phone_db, (err, result) => {
             if (err) return console.log(err);
 
             return console.log(result);

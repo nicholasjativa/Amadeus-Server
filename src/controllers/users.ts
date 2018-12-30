@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { User } from "../models/User";
+import { AmadeusUser } from "../models/AmadeusUser";
 import { AmadeusAccountCreationData } from "../interfaces/AmadeusAccountCreationData";
 
 export class UsersController {
@@ -16,7 +16,7 @@ export class UsersController {
 
         const userId: number = req.session.userId;
 
-        User.findById(userId, (error, results) => {
+        AmadeusUser.findById(userId, (error, results) => {
 
             const user = results[0];
 
@@ -43,7 +43,7 @@ export class UsersController {
 
         const accountCreationData: AmadeusAccountCreationData = req.body;
 
-        User.createNewAccount(accountCreationData, (err, success) => {
+        AmadeusUser.createNewAccount(accountCreationData, (err, success) => {
 
             if (err && err.code === "ER_DUP_ENTRY") {
 
@@ -66,7 +66,7 @@ export class UsersController {
         const emailAddress: string = req.body.emailAddress;
         const password: string = req.body.password;
 
-        User.findOne(emailAddress, password, (err, user, info) => {
+        AmadeusUser.findOne(emailAddress, password, (err, user, info) => {
 
             if (err) return console.log(err); // TODO handle errors
 
@@ -95,7 +95,7 @@ export class UsersController {
         const token: string = req.body.registrationToken;
         const userId: number = req.body.userId;
 
-        User.updateRegistrationToken(userId, token, (err, result) => {
+        AmadeusUser.updateRegistrationToken(userId, token, (err, result) => {
 
             if (err) {
                 res.send(400);

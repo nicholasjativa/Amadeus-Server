@@ -1,19 +1,19 @@
 import { NextFunction, Response, Request, Router, } from "express";
-import { Snippet } from "../models/Snippet";
-import { SnippetCreationData } from "../interfaces/SnippetCreationData";
+import { ConversationPreview } from "../models/ConversationPreview";
+import { ConversationPreviewCreationData } from "../interfaces/ConversationPreviewCreationData";
 
 export class SnippetsController {
     public router: Router = Router();
 
     constructor() {
-        this.router.get("/", this.getSnippets.bind(this));
-        this.router.post("/", this.handleSnippetsReceived.bind(this));    }
+        this.router.get("/", this.getConversationPreviews.bind(this));
+        this.router.post("/", this.receiveConversationPreviews.bind(this));    }
 
-    private getSnippets(req: Request, res: Response): void {
+    private getConversationPreviews(req: Request, res: Response): void {
 
         const userId: number = req.session.userId;
 
-        Snippet.getSnippets(userId, (err, rows) => {
+        ConversationPreview.getPreviews(userId, (err, rows) => {
             if (err) {
                 console.log(err);
             } else {
@@ -22,14 +22,14 @@ export class SnippetsController {
         });
     }
 
-    private handleSnippetsReceived(req: Request, res: Response): void {
+    private receiveConversationPreviews(req: Request, res: Response): void {
 
-        // Snippet.dropTable(); TODO this will need to change to accommadate for users (not just me)
+        // ConversationPreview.dropTable(); TODO this will need to change to accommadate for users (not just me)
         const snippetsArr = JSON.parse(req.body.snippets);
         for (let i = 0; i < snippetsArr.length; i++) {
-            const snippetData: SnippetCreationData = snippetsArr[i];
+            const conversationPreviewData: ConversationPreviewCreationData = snippetsArr[i];
 
-            Snippet.create(snippetData, () => {}); // TODO handle result/error
+            ConversationPreview.create(conversationPreviewData, () => {}); // TODO handle result/error
         }
         res.json({ success: true });
     }
