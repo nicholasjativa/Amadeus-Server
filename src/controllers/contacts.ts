@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Request, Response, Router, NextFunction } from "express";
 import { Contact } from "../models/Contact";
 
 export class ContactsController {
@@ -27,11 +27,11 @@ export class ContactsController {
         res.json({ success: true });
     }
 
-    private handleSendingContacts(req: Request, res: Response): void {
+    private handleSendingContacts(req: Request, res: Response, next: NextFunction): void {
 
         Contact.getContacts((err, rows) => {
             if (err) {
-                res.send(err);
+                next(err);
             } else {
                 res.send(rows);
             }

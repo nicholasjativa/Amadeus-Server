@@ -1,6 +1,7 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { AmadeusUser } from "../models/AmadeusUser";
 import { AmadeusAccountCreationData } from "../interfaces/AmadeusAccountCreationData";
+import { logger } from "../util/logger";
 
 export class UsersController {
     public router: Router = Router();
@@ -12,16 +13,16 @@ export class UsersController {
         this.router.post("/update-registration-token", this.updateRegistrationToken.bind(this));
     }
 
-    private getUser(req: Request, res: Response): void {
+    private getUser(req: Request, res: Response, next: NextFunction): void {
 
         const userId: number = req.session.userId;
 
-        AmadeusUser.findById(userId, (error, results) => {
+        AmadeusUser.findById(userId, (err, results) => {
 
             const user = results[0];
 
-            if (error) {
-                res.send(error);
+            if (err) {
+                next(err);
             } else if (!user) {
                 res.sendStatus(401);
             } else {
@@ -61,14 +62,16 @@ export class UsersController {
 
     }
 
-    private handleLogin(req: Request, res: Response): void {
+    private handleLogin(req: Request, res: Response, next: NextFunction): void {
 
         const emailAddress: string = req.body.emailAddress;
         const password: string = req.body.password;
 
         AmadeusUser.findOne(emailAddress, password, (err, user, info) => {
 
-            if (err) return console.log(err); // TODO handle errors
+            if (err) {
+                return next(err);
+            }
 
             if (user) {
 
@@ -90,7 +93,7 @@ export class UsersController {
         });
     }
 
-    private updateRegistrationToken(req: Request, res: Response): void {
+    private updateRegistrationToken(req: Request, res: Response, next: NextFunction): void {
 
         const token: string = req.body.registrationToken;
         const userId: number = req.body.userId;
@@ -98,7 +101,7 @@ export class UsersController {
         AmadeusUser.updateRegistrationToken(userId, token, (err, result) => {
 
             if (err) {
-                res.send(400);
+                next(err);
             }
 
             if (result) {

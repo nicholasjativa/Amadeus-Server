@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { Response, Request, Router, } from "express";
+import { Response, Request, Router, NextFunction } from "express";
 import { ConversationPreview } from "../models/ConversationPreview";
 import { TextMessage } from "../models/TextMessage";
 import { messaging } from "firebase-admin";
@@ -9,6 +9,7 @@ import { AmadeusMessage } from "../interfaces/AmadeusMessage";
 import { MysqlCallback } from "../interfaces/MysqlCallback";
 import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
 import { PhoneNumberUtils } from "../util/phoneNumberUtils";
+import { logger } from "../util/logger";
 
 /*
     TODOs
@@ -29,17 +30,15 @@ export class ConversationController {
         this.io.on("connection", (socket) => {
 
             const session = socket.request.session;
-            // session.socketId = socket.id;
-            // session.save();
             this.userSockets.set(session.userId, socket); // TODO this should change eventually as well
             socket.on("disconnect", () => {
                 this.userSockets.delete(session.userId);
-                console.log(`Socket has disconnected from Knightmare Frame`);
-                console.log(`Total number of connections is now ${this.userSockets.size}`);
+                logger.info("Socket has disconnected from Knightmare Frame");
+                logger.info(`Total number of connections is now ${this.userSockets.size}`);
             });
 
-            console.log(`Knightmare Frame accepting incoming socket connection..`);
-            console.log(`Total number of connections is ${this.userSockets.size}`);
+            logger.info(`Knightmare Frame accepting incoming socket connection..`);
+            logger.info(`Total number of connections is ${this.userSockets.size}`);
             socket.send("Knightmare Frame connection established.");
         });
 
@@ -50,7 +49,7 @@ export class ConversationController {
         this.router.post("/update-outgoing-text-message-id", this.handleUpdateOutgoingTextId.bind(this));
     }
 
-    private catchOutgoingMessagesSentOnAndroid(req: Request, res: Response): void {
+    private catchOutgoingMessagesSentOnAndroid(req: Request, res: Response, next: NextFunction): void {
 
         const timestamp = req.body.timestamp;
         const amadeusId = timestamp + req.body.toPhoneNumber;
@@ -71,9 +70,7 @@ export class ConversationController {
         this.storeMessageInDb(message, (err, result, snippet) => {
 
             if (err) {
-                // TODO error handling
-                console.log(err);
-                res.send(500);
+                next(err);
             } else {
 
                 const userOpenSocket = this.userSockets.get(userId);
@@ -88,22 +85,21 @@ export class ConversationController {
         });
     }
 
-    private getConversationMessages(req: Request, res: Response): void {
+    private getConversationMessages(req: Request, res: Response, next: NextFunction): void {
 
         const phone_num_clean = req.body.phone_num_clean;
         const userId = req.session.userId;
 
         TextMessage.getAllMessages(phone_num_clean, userId, (err, messagesRows) => {
             if (err) {
-                return res.json(err);
+                next(err);
             } else {
-                console.log("Sending conversation messages to client.");
                 Contact.getContact(phone_num_clean, (err, contactRows) => {
 
                     const info = contactRows[0];
 
                     if (err) {
-                        return res.json(err);
+                        next(err);
                     } else {
                         const response = {
                             name: info.name,
@@ -117,7 +113,7 @@ export class ConversationController {
         });
     }
 
-    private receiveSmsFromAndroid(req: Request, res: Response): void {
+    private receiveSmsFromAndroid(req: Request, res: Response, next: NextFunction): void {
 
         const timestamp: number = Date.now();
         const amadeusId: string = timestamp + req.body.fromPhoneNumber;
@@ -135,8 +131,7 @@ export class ConversationController {
         this.storeMessageInDb(message, (err, result, snippet) => {
 
             if (err) {
-                // handle error
-                res.sendStatus(500);
+                next(err);
             } else {
                 res.json({ success: true }); // TODO we may be able to use req.session.socketId if Volley supports cookie
 
@@ -151,7 +146,7 @@ export class ConversationController {
     }
 
 
-    public relayMessageToAndroid(req: Request, res: Response): void {
+    public relayMessageToAndroid(req: Request, res: Response, next: NextFunction): void {
 
         const timestamp = Date.now();
         const amadeusId = timestamp + req.body.toPhoneNumber;
@@ -182,12 +177,10 @@ export class ConversationController {
         this.storeMessageInDb(amadeusMessage, (err, result, snippet) => {
 
             if (err) {
-                // TODO handle error
-                console.log(err);
+                next(err);
             } else {
 
                 res.json({ success: true });
-                console.log("here");
                 // TODO this should come from a mysql query (update pending to sent)
 
                 const userOpenSocket = this.userSockets.get(userId);
@@ -205,15 +198,16 @@ export class ConversationController {
                         // const updatedMessage = Object.assign({ status: this.MESSAGE_STATE_GCM_SUCCESS }, amadeusMessage);
                         // this.io.emit("sendToAndroidSuccessful", updatedMessage);
                         TextMessage.updateMesssageStatus(amadeusId, this.MESSAGE_STATE_GCM_SUCCESS, (err, result) => {
-                            if (err) console.log(err);
+                            if (err) {
+                                next(err);
+                            }
                             else {
-                                console.log("Updated message to completed");
                             }
                         });
                     })
                     .catch(err => {
                         this.io.emit("sendToAndroidError");
-                        console.log("Error occurred in Firebase: %s", err);
+                        logger.error(`Error occurred in Firebase: ${err}`);
                     });
 
             }
@@ -226,8 +220,7 @@ export class ConversationController {
 
         ConversationPreview.updatePreview(message, (err, snippetResult) => {
             if (err) {
-                console.log("Coming from ConversationPreview.updatePreivew");
-                console.log(err);
+                logger.error(`Error in storeMessageInDb: ${err}`);
             } else {
                 // TODO figure out whether the update call
                 // should be a multiple statement with TextMessage.create
@@ -237,17 +230,20 @@ export class ConversationController {
 
     }
 
-    private handleUpdateOutgoingTextId(req: Request, res: Response): void {
+    private handleUpdateOutgoingTextId(req: Request, res: Response, next: NextFunction): void {
         const amadeusId = req.body.amadeusId;
         const msgid_phone_db = req.body.msgid_phone_db;
 
         TextMessage.updateMessageId(amadeusId, msgid_phone_db, (err, result) => {
-            if (err) return console.log(err);
 
-            return console.log(result);
+            if (err) {
+                next(err);
+            } else {
+                res.json({ success: 200 });
+            }
+
         });
 
-        res.json({ success: 200 });
     }
 
 }

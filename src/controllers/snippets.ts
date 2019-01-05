@@ -9,13 +9,13 @@ export class SnippetsController {
         this.router.get("/", this.getConversationPreviews.bind(this));
         this.router.post("/", this.receiveConversationPreviews.bind(this));    }
 
-    private getConversationPreviews(req: Request, res: Response): void {
+    private getConversationPreviews(req: Request, res: Response, next: NextFunction): void {
 
         const userId: number = req.session.userId;
 
         ConversationPreview.getPreviews(userId, (err, rows) => {
             if (err) {
-                console.log(err);
+                next(err);
             } else {
                 res.json(rows);
             }

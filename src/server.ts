@@ -3,10 +3,12 @@ import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as db from "./db";
 import * as express from "express";
+import { Request, Response, NextFunction } from "express";
 import { createServer, Server } from "http";
 import * as path from "path";
 import * as session from "express-session";
 import * as SocketIO from "socket.io";
+import { logger } from "./util/logger";
 
 import { allowCrossDomain } from "./config/allowCrossDomain";
 import { ConversationController } from "./controllers/conversation";
@@ -43,9 +45,9 @@ export class AmadeusServer {
     private createDbConnection(): void {
         db.connect((err) => {
             if (err) {
-                console.log("Unable to connect to MySQL.");
+                logger.error("Unable to connect to MySQL database");
             } else {
-                console.log("MySQL database starting..");
+                logger.info("MySQL database connection establish successfully");
             }
         });
     }
@@ -68,7 +70,7 @@ export class AmadeusServer {
         this.app.set("trust proxy", true);
         this.app.use(sessionMiddleware);
         this.app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-            // TODO error handling?
+            logger.info(`Routing request to ${req.originalUrl}`);
             next();
         });
         this.app.use(bodyParser.json());
@@ -92,11 +94,16 @@ export class AmadeusServer {
         this.app.get("*", (req, res) => {
             res.sendFile(path.join(__dirname, "public/js/dist/index.html"));
         });
+
+        this.app.use((err, req: Request, res: Response, next: NextFunction) => {
+
+            res.status(500).send({ error: err });
+        });
     }
 
     private listen(): void {
         this.server.listen(this.port, () => {
-            console.log(`Knightmare frame is running at http://localhost:${this.port} in ${this.app.get("env")} mode`);
+            logger.info(`Knightmare frame is running at http://localhost:${this.port} in ${this.app.get("env")} mode`);
         });
     }
 
