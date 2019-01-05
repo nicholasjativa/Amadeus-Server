@@ -8,7 +8,7 @@ import { Contact } from "../models/Contact";
 import { AmadeusMessage } from "../interfaces/AmadeusMessage";
 import { MysqlCallback } from "../interfaces/MysqlCallback";
 import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
-import { PhoneNumberUtils } from "../utils/phoneNumberUtils";
+import { PhoneNumberUtils } from "../util/phoneNumberUtils";
 
 /*
     TODOs

@@ -1,5 +1,5 @@
 import * as db from "../db";
-import { PhoneNumberUtils } from "../utils/phoneNumberUtils";
+import { PhoneNumberUtils } from "../util/phoneNumberUtils";
 import { MysqlCallback } from "../interfaces/MysqlCallback";
 import { MysqlError } from "mysql";
 import { MysqlModificationCallback } from "../interfaces/MysqlModificationCallback";
