@@ -138,7 +138,7 @@ export class ConversationController {
                 // handle error
                 res.sendStatus(500);
             } else {
-                res.sendStatus(200); // TODO we may be able to use req.session.socketId if Volley supports cookie
+                res.json({ success: true }); // TODO we may be able to use req.session.socketId if Volley supports cookie
 
                 const userOpenSocket = this.userSockets.get(req.body.userId);
                 if (userOpenSocket) {
@@ -247,7 +247,7 @@ export class ConversationController {
             return console.log(result);
         });
 
-        res.sendStatus(200);
+        res.json({ success: 200 });
     }
 
 }

@@ -24,7 +24,7 @@ export class ContactsController {
             Contact.saveContact(contactId, displayName, phoneNumber, userId);
         });
 
-        res.sendStatus(200);
+        res.json({ success: true });
     }
 
     private handleSendingContacts(req: Request, res: Response): void {
